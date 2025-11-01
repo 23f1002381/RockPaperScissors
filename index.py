@@ -1,14 +1,17 @@
 import tkinter as tk
 import random
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-class EnhancedRPSGUI:
+class EnhancedRPSGUIWithGraph:
     def __init__(self, root):
         self.root = root
-        self.root.title('Enhanced Rock Paper Scissors')
+        self.root.title('Enhanced Rock Paper Scissors with Graph')
 
         self.options = ['rock', 'paper', 'scissors']
         self.player_score = 0
         self.computer_score = 0
+        self.history = []  # Track history of scores
 
         # Score Labels
         self.score_frame = tk.Frame(root)
@@ -35,6 +38,15 @@ class EnhancedRPSGUI:
         self.reset_button = tk.Button(root, text='Reset Scores', command=self.reset_scores)
         self.reset_button.pack(pady=10)
 
+        # Matplotlib figure for graph
+        self.fig, self.ax = plt.subplots(figsize=(5, 3))
+        self.ax.set_title('Score Over Time')
+        self.ax.set_xlabel('Rounds')
+        self.ax.set_ylabel('Score')
+
+        self.canvas = FigureCanvasTkAgg(self.fig, master=root)
+        self.canvas.get_tk_widget().pack(pady=10)
+
     def play(self, user_choice):
         computer_choice = random.choice(self.options)
         result = ''
@@ -49,20 +61,37 @@ class EnhancedRPSGUI:
             result = "Computer wins!"
             self.computer_score += 1
 
+        self.history.append((self.player_score, self.computer_score))
         self.update_scores()
+        self.update_graph()
         self.result_label.config(text=f'You chose {user_choice}, computer chose {computer_choice}. {result}')
 
     def update_scores(self):
         self.player_label.config(text=f'Player: {self.player_score}')
         self.computer_label.config(text=f'Computer: {self.computer_score}')
 
+    def update_graph(self):
+        self.ax.clear()
+        self.ax.set_title('Score Over Time')
+        self.ax.set_xlabel('Rounds')
+        self.ax.set_ylabel('Score')
+        rounds = list(range(1, len(self.history) + 1))
+        player_scores = [s[0] for s in self.history]
+        computer_scores = [s[1] for s in self.history]
+        self.ax.plot(rounds, player_scores, label='Player', marker='o')
+        self.ax.plot(rounds, computer_scores, label='Computer', marker='o')
+        self.ax.legend()
+        self.canvas.draw()
+
     def reset_scores(self):
         self.player_score = 0
         self.computer_score = 0
+        self.history.clear()
         self.update_scores()
+        self.update_graph()
         self.result_label.config(text='Scores reset!')
 
 if __name__ == "__main__":
     root = tk.Tk()
-    game = EnhancedRPSGUI(root)
+    game = EnhancedRPSGUIWithGraph(root)
     root.mainloop()
