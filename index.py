@@ -1,7 +1,8 @@
 import tkinter as tk
 import random
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt  # pyright: ignore[reportMissingModuleSource]
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg  # pyright: ignore[reportMissingModuleSource]
+
 
 class EnhancedRPSGUIWithGraph:
     def __init__(self, root):
@@ -78,8 +79,30 @@ class EnhancedRPSGUIWithGraph:
         rounds = list(range(1, len(self.history) + 1))
         player_scores = [s[0] for s in self.history]
         computer_scores = [s[1] for s in self.history]
+        
         self.ax.plot(rounds, player_scores, label='Player', marker='o')
         self.ax.plot(rounds, computer_scores, label='Computer', marker='o')
+
+        # Find first round where player overtakes computer
+        overtaken_index = None
+        for i, (p_score, c_score) in enumerate(self.history):
+            if p_score > c_score:
+                overtaken_index = i + 1  # rounds are 1-based
+                break
+
+        if overtaken_index is not None:
+            # Annotate the overtaking point
+            self.ax.annotate(
+                f'Player overtook\nPlayer: {player_scores[overtaken_index - 1]}, Computer: {computer_scores[overtaken_index - 1]}',
+                xy=(overtaken_index, player_scores[overtaken_index - 1]),
+                xytext=(overtaken_index + 1, player_scores[overtaken_index - 1] + 1),
+                arrowprops=dict(facecolor='black', arrowstyle='->'),
+                fontsize=9,
+                bbox=dict(boxstyle='round,pad=0.3', fc='yellow', alpha=0.5)
+            )
+            # Mark the overtaking point with a red dot
+            self.ax.plot(overtaken_index, player_scores[overtaken_index - 1], 'ro')
+
         self.ax.legend()
         self.canvas.draw()
 
@@ -90,6 +113,7 @@ class EnhancedRPSGUIWithGraph:
         self.update_scores()
         self.update_graph()
         self.result_label.config(text='Scores reset!')
+
 
 if __name__ == "__main__":
     root = tk.Tk()
